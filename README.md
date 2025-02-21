@@ -68,6 +68,7 @@ The application will display:
 ## Sample Output
 
 2025-02-21 14:11:54,640 - INFO - Starting Eddington number calculation...
+
 2025-02-21 14:11:54,660 - INFO - Using cached trip data
 
 === RIDE STATISTICS ===
@@ -84,18 +85,29 @@ Number of rides >= 100 miles: 100
 
 Yearly Eddington numbers:
 ------------------------------
+
 2025: 26
+
 2024: 43
+
 2023: 31
+
 2022: 32
+
 2021: 36
+
 2020: 31
+
 2019: 38
+
 2018: 76 *Highest*
 
 === RIDE METRICS ===
+
 Longest ride: 909.5 miles
+
 Average ride: 23.2 miles
+
 Total distance: 95,221.5 miles
 
 === RIDE DISTRIBUTION ===
@@ -147,6 +159,7 @@ Total distance: 95,221.5 miles
 * 	\>= 900 miles: 1 rides
 
 === MILESTONE ACHIEVEMENTS ===
+
 * Century rides (100+ miles): 100
 * Double centuries (200+ miles): 15
 * Triple centuries (300+ miles): 9
