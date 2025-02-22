@@ -67,10 +67,6 @@ The application will display:
 
 ## Sample Output
 
-2025-02-21 14:11:54,640 - INFO - Starting Eddington number calculation...
-
-2025-02-21 14:11:54,660 - INFO - Using cached trip data
-
 === RIDE STATISTICS ===
 
 Total rides analyzed: 4106
@@ -85,22 +81,33 @@ Number of rides >= 100 miles: 100
 
 Yearly Eddington numbers:
 ------------------------------
-
 2025: 26
 
-2024: 43
+2024: 44 *Highest*
 
 2023: 31
 
-2022: 32
+2022: 33
 
-2021: 36
+2021: 33
 
 2020: 31
 
-2019: 38
+2019: 39
 
-2018: 76 *Highest*
+2018: 34
+
+2017: 35
+
+2016: 43
+
+2015: 44
+
+2014: 39
+
+2013: 38
+
+2012: 20
 
 === RIDE METRICS ===
 
@@ -111,61 +118,111 @@ Average ride: 23.2 miles
 Total distance: 95,221.5 miles
 
 === RIDE DISTRIBUTION ===
-* 	\>= 0 miles: 4106 rides
-* 	\>= 20 miles: 1839 rides
-* 	\>= 40 miles: 387 rides
-* 	\>= 60 miles: 201 rides
-* 	\>= 80 miles: 132 rides
-* 	\>= 100 miles: 100 rides
-* 	\>= 120 miles: 80 rides
-* 	\>= 140 miles: 40 rides
-* 	\>= 160 miles: 36 rides
-* 	\>= 180 miles: 33 rides
-* 	\>= 200 miles: 15 rides
-* 	\>= 220 miles: 14 rides
-* 	\>= 240 miles: 14 rides
-* 	\>= 260 miles: 12 rides
-* 	\>= 280 miles: 9 rides
-* 	\>= 300 miles: 9 rides
-* 	\>= 320 miles: 9 rides
-* 	\>= 340 miles: 9 rides
-* 	\>= 360 miles: 9 rides
-* 	\>= 380 miles: 7 rides
-* 	\>= 400 miles: 3 rides
-* 	\>= 420 miles: 3 rides
-* 	\>= 440 miles: 3 rides
-* 	\>= 460 miles: 3 rides
-* 	\>= 480 miles: 3 rides
-* 	\>= 500 miles: 3 rides
-* 	\>= 520 miles: 3 rides
-* 	\>= 540 miles: 3 rides
-* 	\>= 560 miles: 3 rides
-* 	\>= 580 miles: 3 rides
-* 	\>= 600 miles: 3 rides
-* 	\>= 620 miles: 3 rides
-* 	\>= 640 miles: 3 rides
-* 	\>= 660 miles: 3 rides
-* 	\>= 680 miles: 3 rides
-* 	\>= 700 miles: 3 rides
-* 	\>= 720 miles: 3 rides
-* 	\>= 740 miles: 3 rides
-* 	\>= 760 miles: 3 rides
-* 	\>= 780 miles: 2 rides
-* 	\>= 800 miles: 2 rides
-* 	\>= 820 miles: 2 rides
-* 	\>= 840 miles: 2 rides
-* 	\>= 860 miles: 2 rides
-* 	\>= 880 miles: 1 rides
-* 	\>= 900 miles: 1 rides
+
+\>= 0 miles: 4106 rides
+
+\>= 20 miles: 1839 rides
+
+\>= 40 miles: 387 rides
+
+\>= 60 miles: 201 rides
+
+\>= 80 miles: 132 rides
+
+\>= 100 miles: 100 rides
+
+\>= 120 miles: 80 rides
+
+\>= 140 miles: 40 rides
+
+\>= 160 miles: 36 rides
+
+\>= 180 miles: 33 rides
+
+\>= 200 miles: 15 rides
+
+\>= 220 miles: 14 rides
+
+\>= 240 miles: 14 rides
+
+\>= 260 miles: 12 rides
+
+\>= 280 miles: 9 rides
+
+\>= 300 miles: 9 rides
+
+\>= 320 miles: 9 rides
+
+\>= 340 miles: 9 rides
+
+\>= 360 miles: 9 rides
+
+\>= 380 miles: 7 rides
+
+\>= 400 miles: 3 rides
+
+\>= 420 miles: 3 rides
+
+\>= 440 miles: 3 rides
+
+\>= 460 miles: 3 rides
+
+\>= 480 miles: 3 rides
+
+\>= 500 miles: 3 rides
+
+\>= 520 miles: 3 rides
+
+\>= 540 miles: 3 rides
+
+\>= 560 miles: 3 rides
+
+\>= 580 miles: 3 rides
+
+\>= 600 miles: 3 rides
+
+\>= 620 miles: 3 rides
+
+\>= 640 miles: 3 rides
+
+\>= 660 miles: 3 rides
+
+\>= 680 miles: 3 rides
+
+\>= 700 miles: 3 rides
+
+\>= 720 miles: 3 rides
+
+\>= 740 miles: 3 rides
+
+\>= 760 miles: 3 rides
+
+\>= 780 miles: 2 rides
+
+\>= 800 miles: 2 rides
+
+\>= 820 miles: 2 rides
+
+\>= 840 miles: 2 rides
+
+\>= 860 miles: 2 rides
+
+\>= 880 miles: 1 rides
+
+\>= 900 miles: 1 rides
 
 === MILESTONE ACHIEVEMENTS ===
 
-* Century rides (100+ miles): 100
-* Double centuries (200+ miles): 15
-* Triple centuries (300+ miles): 9
-* Quad centuries (400+ miles): 3
+Century rides (100+ miles): 100
+
+Double centuries (200+ miles): 15
+
+Triple centuries (300+ miles): 9
+
+Quad centuries (400+ miles): 3
 
 Top 5 longest rides:
+
 1. 909.5 miles
 2. 876.9 miles
 3. 761.6 miles
@@ -173,31 +230,42 @@ Top 5 longest rides:
 5. 387.0 miles
 
 === NEXT MILESTONE ===
-* Rides needed for E=101: 2
+
+Rides needed for E=101: 2
 
 === MONTHLY STATISTICS ===
-* 2024-03: 30 rides, 716.2 miles
-* 2024-04: 30 rides, 637.8 miles
-* 2024-05: 50 rides, 1513.7 miles
-* 2024-06: 19 rides, 724.8 miles
-* 2024-07: 19 rides, 805.4 miles
-* 2024-08: 20 rides, 924.7 miles
-* 2024-09: 27 rides, 628.0 miles
-* 2024-10: 22 rides, 808.3 miles
-* 2024-11: 21 rides, 952.2 miles
-* 2024-12: 31 rides, 1020.5 miles
-* 2025-01: 23 rides, 825.9 miles
-* 2025-02: 13 rides, 846.3 miles
+
+2024-03: 30 rides, 716.2 miles
+
+2024-04: 30 rides, 637.8 miles
+
+2024-05: 50 rides, 1513.7 miles
+
+2024-06: 19 rides, 724.8 miles
+
+2024-07: 19 rides, 805.4 miles
+
+2024-08: 20 rides, 924.7 miles
+
+2024-09: 27 rides, 628.0 miles
+
+2024-10: 22 rides, 808.3 miles
+
+2024-11: 21 rides, 952.2 miles
+
+2024-12: 31 rides, 1020.5 miles
+
+2025-01: 23 rides, 825.9 miles
+
+2025-02: 13 rides, 846.3 miles
 
 === YEAR TO DATE (2025) ===
 
-2025-02-21 14:11:54,834 - INFO - Calculation completed successfully
-* Rides this year: 36
-* Distance this year: 1,672.2 miles
-* Current year Eddington: 26
+Rides this year: 36
 
-Process finished with exit code 0
+Distance this year: 1,672.2 miles
 
+Current year Eddington: 26
 
 ## Contributing
 
