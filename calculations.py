@@ -1,3 +1,4 @@
+import logging
 from typing import List, Dict, Tuple
 from collections import defaultdict
 from datetime import datetime
@@ -47,12 +48,25 @@ def calculate_yearly_eddington(trips: List[Dict]) -> Dict[int, int]:
     Returns a dictionary with years as keys and Eddington numbers as values.
     """
     yearly_distances = defaultdict(list)
+    current_year = datetime.now().year
 
     for trip in trips:
-        if 'distance' in trip and 'created_at' in trip:
-            year = datetime.strptime(trip['created_at'], "%Y-%m-%dT%H:%M:%SZ").year
-            distance = trip['distance'] * 0.000621371  # Convert to miles
-            yearly_distances[year].append(distance)
+        if 'distance' in trip:
+            # Try multiple date fields in order of preference
+            for date_field in ['departed_at', 'start_date', 'scheduled_date', 'created_at']:
+                if date_field in trip and trip[date_field]:
+                    try:
+                        # Handle both formats with and without timezone
+                        date_str = trip[date_field].split('+')[0].rstrip('Z')
+                        trip_date = datetime.fromisoformat(date_str)
+
+                        # Only process rides from reasonable years
+                        if trip_date.year <= current_year:
+                            distance = trip['distance'] * 0.000621371  # Convert to miles
+                            yearly_distances[trip_date.year].append(distance)
+                            break  # Use first valid date found
+                    except ValueError:
+                        continue
 
     return {year: calculate_eddington(distances)
             for year, distances in yearly_distances.items()}
@@ -104,7 +118,7 @@ def get_milestone_rides(distances: List[float]) -> Dict[str, List[float]]:
         'total_rides': len(distances),
         'longest': sorted_distances[-1],
         'shortest': sorted_distances[0],
-        'median': sorted_distances[len(sorted_distances)//2],
+        'median': sorted_distances[len(sorted_distances) // 2],
         'centuries': len([d for d in distances if d >= 100]),
         'double_centuries': len([d for d in distances if d >= 200]),
         'triple_centuries': len([d for d in distances if d >= 300]),
@@ -145,4 +159,5 @@ def calculate_rides_needed_next(distances: List[float]) -> int:
     target = current_e + 1
     current_qualifying = sum(1 for d in distances if d >= target)
     return target - current_qualifying
+
 
