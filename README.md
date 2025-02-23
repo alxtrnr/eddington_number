@@ -68,6 +68,7 @@ The application will display:
 ## Sample Output
 
 **=== RIDE STATISTICS ===**
+
 Total rides analyzed: 4106
 
 === OVERALL EDDINGTON PROGRESS ===
