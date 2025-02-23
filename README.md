@@ -67,23 +67,42 @@ The application will display:
 
 ## Sample Output
 
-=== RIDE STATISTICS ===
-
+**=== RIDE STATISTICS ===**
 Total rides analyzed: 4106
 
-=== EDDINGTON NUMBERS ===
+=== OVERALL EDDINGTON PROGRESS ===
 
-Overall Eddington number: 100
+Current overall Eddington: 98
 
-Eddington verification (E=100):
+In progress: E=99 (98 rides of 99+ miles)
 
-Number of rides >= 100 miles: 100
+Need 1 more rides of 99+ miles for E=99
 
-Yearly Eddington numbers:
-------------------------------
-2025: 26
+Next goal after that: E=100 (98 rides of 100+ miles)
 
-2024: 44 *Highest*
+Will need 2 more rides of 100+ miles for E=100
+
+**=== EDDINGTON YEAR TO DATE (2025) ===**
+
+Rides this year: 38
+
+Distance this year: 1,762.3 miles
+
+Current year Eddington: 27
+
+In progress: E=28 (25 rides of 28+ miles)
+
+Need 3 more rides of 28+ miles for E=28
+
+Next goal after that: E=29 (25 rides of 29+ miles)
+
+Will need 4 more rides of 29+ miles for E=29
+
+**=== YEARLY EDDINGTON NUMBERS ===**
+
+2025: 27
+
+2024: 42
 
 2023: 31
 
@@ -101,7 +120,7 @@ Yearly Eddington numbers:
 
 2016: 43
 
-2015: 44
+2015: 44 *Highest*
 
 2014: 39
 
@@ -109,35 +128,35 @@ Yearly Eddington numbers:
 
 2012: 20
 
-=== RIDE METRICS ===
+**=== RIDE METRICS ===**
 
 Longest ride: 909.5 miles
 
-Average ride: 23.2 miles
+Average ride: 23.1 miles
 
-Total distance: 95,221.5 miles
+Total distance: 94927.7 miles
 
-=== RIDE DISTRIBUTION ===
+**=== RIDE DISTRIBUTION ===**
 
 \>= 0 miles: 4106 rides
 
 \>= 20 miles: 1839 rides
 
-\>= 40 miles: 387 rides
+\>= 40 miles: 386 rides
 
-\>= 60 miles: 201 rides
+\>= 60 miles: 199 rides
 
-\>= 80 miles: 132 rides
+\>= 80 miles: 130 rides
 
-\>= 100 miles: 100 rides
+\>= 100 miles: 98 rides
 
-\>= 120 miles: 80 rides
+\>= 120 miles: 78 rides
 
-\>= 140 miles: 40 rides
+\>= 140 miles: 38 rides
 
-\>= 160 miles: 36 rides
+\>= 160 miles: 34 rides
 
-\>= 180 miles: 33 rides
+\>= 180 miles: 31 rides
 
 \>= 200 miles: 15 rides
 
@@ -211,9 +230,9 @@ Total distance: 95,221.5 miles
 
 \>= 900 miles: 1 rides
 
-=== MILESTONE ACHIEVEMENTS ===
+**=== MILESTONE ACHIEVEMENTS ===**
 
-Century rides (100+ miles): 100
+Century rides (100+ miles): 98
 
 Double centuries (200+ miles): 15
 
@@ -221,51 +240,38 @@ Triple centuries (300+ miles): 9
 
 Quad centuries (400+ miles): 3
 
-Top 5 longest rides:
+**=== TOP 5 LONGEST RIDES ===**
+1. 909.5 miles - audax: LEL
+2. 876.9 miles - audax: LEJOG
+3. 761.6 miles - audax: PBP
+4. 387.7 miles - audax: Willesden's Last Gasp
+5. 387.0 miles - audax: Orbit London 600k DIY
 
-1. 909.5 miles
-2. 876.9 miles
-3. 761.6 miles
-4. 387.7 miles
-5. 387.0 miles
+**=== MONTHLY STATISTICS ===**
 
-=== NEXT MILESTONE ===
-
-Rides needed for E=101: 2
-
-=== MONTHLY STATISTICS ===
-
-2024-03: 30 rides, 716.2 miles
-
-2024-04: 30 rides, 637.8 miles
-
-2024-05: 50 rides, 1513.7 miles
-
-2024-06: 19 rides, 724.8 miles
-
-2024-07: 19 rides, 805.4 miles
-
-2024-08: 20 rides, 924.7 miles
-
-2024-09: 27 rides, 628.0 miles
-
-2024-10: 22 rides, 808.3 miles
-
-2024-11: 21 rides, 952.2 miles
-
-2024-12: 31 rides, 1020.5 miles
+2025-02: 14 rides, 549.4 miles
 
 2025-01: 23 rides, 825.9 miles
 
-2025-02: 13 rides, 846.3 miles
+2024-12: 31 rides, 1020.5 miles
 
-=== YEAR TO DATE (2025) ===
+2024-11: 20 rides, 955.2 miles
 
-Rides this year: 36
+2024-10: 22 rides, 808.3 miles
 
-Distance this year: 1,672.2 miles
+2024-09: 12 rides, 447.8 miles
 
-Current year Eddington: 26
+2024-08: 21 rides, 960.8 miles
+
+2024-07: 19 rides, 805.4 miles
+
+2024-06: 19 rides, 724.8 miles
+
+2024-05: 49 rides, 1505.0 miles
+
+2024-04: 31 rides, 646.4 miles
+
+2024-03: 34 rides, 751.2 miles
 
 ## Contributing
 
@@ -274,6 +280,3 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-
-
