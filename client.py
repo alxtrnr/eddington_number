@@ -5,23 +5,34 @@ import logging
 import requests
 import json
 import time
-
+import sys  # Add this for sys.exit()
 from log_rate_limit import RateLimit
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from tqdm import tqdm
+from config import API_KEY
+import getpass
+
+from utils import load_token, save_token
 
 
 class RWGPSClient:
     """Client for interacting with the Ride With GPS API."""
 
-    def __init__(self, api_key: str, email: str, password: str):
+    def __init__(self, api_key: str, email: str = None, password: str = None):
         self.base_url = "https://ridewithgps.com/api/v1"
         self.api_key = api_key
-        self.email = email
-        self.password = password
         self._session = self._create_session()
-        self.auth_token = self._get_auth_token()
+
+        # Try to load existing token first
+        self.auth_token = load_token()
+        if not self.auth_token and email and password:
+            self.email = email
+            self.password = password
+            self.auth_token = self._get_auth_token()
+            if self.auth_token:
+                save_token(self.auth_token)
+
 
     def _create_session(self) -> requests.Session:
         retry_strategy = Retry(
@@ -34,33 +45,64 @@ class RWGPSClient:
         session.mount("https://", adapter)
         return session
 
-    def _get_auth_token(self) -> str:
-        auth_url = f"{self.base_url}/auth_tokens.json"
-        headers = {
-            'x-rwgps-api-key': self.api_key,
-            'Content-Type': 'application/json'
-        }
-        payload = {
-            'user': {
-                'email': self.email,
-                'password': self.password
+    def _get_auth_token(self, max_retries=3) -> str:
+        """Get authentication token with limited retries."""
+        retry_count = 0
+
+        while retry_count < max_retries:
+            auth_url = f"{self.base_url}/auth_tokens.json"
+            headers = {
+                'x-rwgps-api-key': self.api_key,
+                'Content-Type': 'application/json'
             }
-        }
-        try:
-            response = self._session.post(
-                auth_url,
-                headers=headers,
-                json=payload,
-                timeout=30
-            )
-            response.raise_for_status()
-            data = response.json()
-            if 'auth_token' in data and 'auth_token' in data['auth_token']:
-                return data['auth_token']['auth_token']
-            raise Exception("Invalid authentication response format")
-        except Exception as e:
-            logging.error(f"Authentication error: {str(e)}")
-            raise
+            payload = {
+                'user': {
+                    'email': self.email,
+                    'password': self.password
+                }
+            }
+
+            try:
+                # Basic email format validation
+                if '@' not in self.email or '.' not in self.email:
+                    raise ValueError("Invalid email format")
+
+                response = self._session.post(
+                    auth_url,
+                    headers=headers,
+                    json=payload,
+                    timeout=30
+                )
+
+                response.raise_for_status()
+                data = response.json()
+
+                if 'auth_token' in data and 'auth_token' in data['auth_token']:
+                    auth_token = data['auth_token']['auth_token']
+                    # Return immediately on success
+                    return auth_token
+
+                raise ValueError("Invalid response format from API")
+
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 401:
+                    print("\nAuthentication Failed: Invalid credentials")
+                else:
+                    print(f"\nHTTP Error: {e.response.status_code}")
+            except ValueError as e:
+                print(f"\nValidation Error: {str(e)}")
+            except Exception as e:
+                print(f"\nUnexpected Error: {str(e)}")
+
+            retry_count += 1
+            if retry_count < max_retries:
+                retry = input("\nWould you like to retry? (y/n): ").lower()
+                if retry != 'y':
+                    break
+                self.email = input("Enter your RWGPS email: ")
+                self.password = getpass.getpass("Enter your RWGPS password: ")
+
+        raise Exception("Authentication failed after maximum retries")
 
     def get_latest_trip(self) -> dict:
         """Fetch the most recent trip from RWGPS."""
