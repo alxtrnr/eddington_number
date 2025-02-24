@@ -1,8 +1,11 @@
 # main.py
+import getpass
 import logging
 from collections import defaultdict
-
 from typing import List
+from auth import get_credentials
+from client import RWGPSClient
+from config import API_KEY
 
 import time
 
@@ -19,7 +22,7 @@ from calculations import (
     calculate_next_yearly_e, calculate_overall_e_progress, get_ride_titles
 )
 from utils import cache_data, load_cached_data
-from config import API_KEY, EMAIL, PASSWORD, CACHE_FILE, CACHE_DURATION
+from config import API_KEY, CACHE_FILE, CACHE_DURATION
 from log_rate_limit import StreamRateLimitFilter, RateLimit
 
 METERS_TO_MILES = Decimal("0.000621371192237334")
@@ -47,13 +50,6 @@ def setup_logging():
     # Disable verbose HTTP logging
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
-
-# Call setup_logging at the start of main()
-
-
-def main():
-    setup_logging()
-    logging.info("Starting Eddington number calculation...")
 
 
 def update_cache(cache_file: str, client: RWGPSClient) -> List[dict]:
@@ -125,26 +121,35 @@ def process_trips(trips: List[dict]) -> List[Decimal]:
 
 def main():
     """Main execution function."""
+    setup_logging()
     logging.info("Starting Eddington number calculation...")
 
-    if not all([API_KEY, EMAIL, PASSWORD]):
-        raise ValueError(
-            "Missing required environment variables. Please set RWGPS_API_KEY, RWGPS_EMAIL, and RWGPS_PASSWORD")
+    # Check for API key
+    if not API_KEY:
+        raise ValueError("Missing required RWGPS_API_KEY environment variable")
 
     try:
-        client = RWGPSClient(API_KEY, EMAIL, PASSWORD)
+        # Get user credentials
+        from auth import get_credentials
+        email, password = get_credentials()
+
+        if not email or not password:
+            raise ValueError("Email and password are required")
+
+        client = RWGPSClient(API_KEY, email, password)
         trips = update_cache(CACHE_FILE, client)
         distances = process_trips(trips)
         yearly_eddington = calculate_yearly_eddington(trips)
         stats = calculate_statistics(distances)
         highest_year, highest_e = get_highest_yearly_eddington(yearly_eddington)
         advanced_metrics = analyze_ride_metrics(trips)
-        distances = process_trips(trips)
+
         current_e, rides_at_next, rides_needed_next, rides_at_nextnext, rides_needed_nextnext = \
             calculate_overall_e_progress(distances)
 
         print("\n=== RIDE STATISTICS ===")
         print(f"Total rides analyzed: {len(distances)}")
+
         print("\n=== OVERALL EDDINGTON PROGRESS ===")
         print(f"Current overall Eddington: {current_e}")
         print(f"In progress: E={current_e + 1} ({rides_at_next} rides of {current_e + 1}+ miles)")
@@ -156,13 +161,12 @@ def main():
         if current_year in yearly_eddington:
             print(f"\n=== EDDINGTON YEAR TO DATE ({current_year}) ===")
             ytd_rides = [trip for trip in trips
-                         if datetime.strptime(trip['created_at'],
-                                              "%Y-%m-%dT%H:%M:%SZ").year == current_year]
-            # Fixed line:  ytd_distances = process_trips(ytd_rides)
-            ytd_distances = [Decimal(str(trip['distance'])) * Decimal("0.000621371") for trip in
-                             ytd_rides]  # Corrected line
+                        if datetime.strptime(trip['created_at'],
+                                          "%Y-%m-%dT%H:%M:%SZ").year == current_year]
+            ytd_distances = [Decimal(str(trip['distance'])) * Decimal("0.000621371") for trip in ytd_rides]
             ytd_stats = calculate_statistics(ytd_distances)
             next_e, rides_at_target, rides_needed = calculate_next_yearly_e(trips, current_year)
+
             print(f"Rides this year: {len(ytd_rides)}")
             print(f"Distance this year: {ytd_stats['total_distance']:,.1f} miles")
             print(f"Current year Eddington: {yearly_eddington[current_year]}")
@@ -182,7 +186,6 @@ def main():
         print("\n=== RIDE METRICS ===")
         print(f"Longest ride: {stats['longest_ride']:.1f} miles")
         print(f"Average ride: {stats['average_ride']:.1f} miles")
-        # Round total distance only when printing
         print(f"Total distance: {stats['total_distance']:.1f} miles")
 
         print("\n=== RIDE DISTRIBUTION ===")
@@ -204,27 +207,23 @@ def main():
             print(f"{i}. {distance:.1f} miles - {title}")
 
         print("\n=== MONTHLY STATISTICS ===")
-        # Get current date for reference
         current_date = datetime.now()
-
-        # Create list of (datetime, month_key) tuples for sorting
         month_tuples = []
         for month in advanced_metrics['monthly_totals'].keys():
             year, month_num = map(int, month.split('-'))
             month_tuples.append((datetime(year, month_num, 1), month))
-
-        # Sort by date and take most recent 12 months
         sorted_months = [month for _, month in sorted(month_tuples, reverse=True)][:12]
+
         for month in sorted_months:
             rides = advanced_metrics['monthly_counts'][month]
             distance = advanced_metrics['monthly_totals'][month]
             print(f"{month}: {rides} rides, {distance:.1f} miles")
 
-
-
     except Exception as e:
         logging.exception(f"An error occurred: {str(e)}")
         raise
+
+
 
 
 def display_statistics(stats: dict[str, Decimal]) -> None:
