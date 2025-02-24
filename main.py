@@ -15,12 +15,12 @@ from calculations import (
     calculate_yearly_eddington,
     get_highest_yearly_eddington,
     analyze_ride_distribution,
-    verify_eddington,
     analyze_ride_metrics,
     calculate_next_yearly_e, calculate_overall_e_progress, get_ride_titles
 )
 from utils import cache_data, load_cached_data
 from config import API_KEY, EMAIL, PASSWORD, CACHE_FILE, CACHE_DURATION
+from log_rate_limit import StreamRateLimitFilter, RateLimit
 
 METERS_TO_MILES = Decimal("0.000621371192237334")
 
@@ -30,6 +30,30 @@ logging.basicConfig(
 )
 
 getcontext().prec = 28  # Adjust precision as needed
+
+
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+    # Add rate limiting to root logger
+    root_logger = logging.getLogger()
+    root_logger.addFilter(StreamRateLimitFilter(
+        period_sec=1,  # Limit similar logs to once per second
+        default_stream_id=None  # Don't rate limit by default
+    ))
+
+    # Disable verbose HTTP logging
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+
+# Call setup_logging at the start of main()
+
+
+def main():
+    setup_logging()
+    logging.info("Starting Eddington number calculation...")
 
 
 def update_cache(cache_file: str, client: RWGPSClient) -> List[dict]:
