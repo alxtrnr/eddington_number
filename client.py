@@ -5,6 +5,8 @@ import logging
 import requests
 import json
 import time
+
+from log_rate_limit import RateLimit
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from tqdm import tqdm
@@ -83,32 +85,21 @@ class RWGPSClient:
     def get_trips_page(self, page: int) -> List[dict]:
         """Fetch a single page of trips."""
         trips_url = f"{self.base_url}/trips.json"
-        headers = {
-            'x-rwgps-api-key': self.api_key,
-            'x-rwgps-auth-token': self.auth_token
-        }
+
         try:
-            logging.info(f"Fetching page {page} from RWGPS API")
             response = self._session.get(
                 trips_url,
-                headers=headers,
+                headers={
+                    'x-rwgps-api-key': self.api_key,
+                    'x-rwgps-auth-token': self.auth_token
+                },
                 params={'page': page, 'version': 2, 'per_page': 50},
                 timeout=30
             )
             data = response.json()
-            logging.info(f"Got {len(data['trips'])} trips from page {page}")
-
-            # Add detailed logging for February 2025 rides
-            for trip in data['trips']:
-                date = datetime.strptime(trip['created_at'], "%Y-%m-%dT%H:%M:%SZ")
-                if date.year == 2025 and date.month == 2:
-                    distance_miles = trip['distance'] * 0.000621371
-                    logging.info(f"Feb 2025 ride: {trip['distance']} meters = {distance_miles:.2f} miles")
-                    logging.info(f"Ride details - Date: {date}, ID: {trip['id']}")
-
             return data['trips']
         except Exception as e:
-            logging.error(f"Failed to fetch trips page {page}: {str(e)}")
+            logging.error(f"Failed to fetch page {page}: {str(e)}")
             raise
 
     def get_missing_trips(self, cached_trips: List[dict], latest_trip: dict) -> List[dict]:
@@ -140,16 +131,12 @@ class RWGPSClient:
         return missing_trips
 
     def get_all_trips(self) -> List[Dict[str, Any]]:
-        """Fetch all trips from RWGPS with enhanced validation and logging."""
+        """Fetch all trips from RWGPS with simplified progress tracking."""
         trips_url = f"{self.base_url}/trips.json"
         all_trips = []
-        page = 1
-        total_meters = Decimal('0')
-        earliest_date = None
-        latest_date = None
 
         try:
-            # Get first page to determine total pages
+            # Get first page to determine total counts
             response = self._session.get(
                 trips_url,
                 headers={
@@ -163,67 +150,24 @@ class RWGPSClient:
             data = response.json()
             total_pages = data['meta']['pagination']['page_count']
             total_rides = data['meta']['pagination']['record_count']
-            logging.info(f"RWGPS reports total rides: {total_rides}")
 
-            with tqdm(total=total_rides, desc="Fetching all rides") as pbar:
-                while page <= total_pages:
+            start_time = time.time()
+            logging.info(f"Fetching {total_rides} rides across {total_pages} pages")
+
+            with tqdm(total=total_rides, desc="Retrieving rides", unit=" rides per") as pbar:
+                for page in range(1, total_pages + 1):
                     try:
                         trips = self.get_trips_page(page)
-
-                        # Track running total and date range
-                        for trip in trips:
-                            meters = Decimal(str(trip.get('distance', 0)))
-                            total_meters += meters
-
-                            date = datetime.strptime(trip['created_at'], "%Y-%m-%dT%H:%M:%SZ")
-                            if earliest_date is None or date < earliest_date:
-                                earliest_date = date
-                            if latest_date is None or date > latest_date:
-                                latest_date = date
-
-                        # Log detailed page info
-                        logging.info(f"Page {page}/{total_pages}:")
-                        logging.info(f"- Retrieved {len(trips)} rides")
-                        logging.info(f"- Running total: {total_meters / 1000:.1f}km")
-
-                        # Log first/last ride IDs and dates on page
-                        if trips:
-                            first_trip = trips[0]
-                            last_trip = trips[-1]
-                            logging.info(f"- First ride: ID {first_trip['id']}, Date: {first_trip['created_at']}")
-                            logging.info(f"- Last ride: ID {last_trip['id']}, Date: {last_trip['created_at']}")
-
                         all_trips.extend(trips)
                         pbar.update(len(trips))
-                        page += 1
                         time.sleep(1)  # Rate limiting
                     except Exception as e:
                         logging.error(f"Error on page {page}: {str(e)}")
                         time.sleep(5)
                         continue
 
-            # Final validation
-            actual_rides = len(all_trips)
-            logging.info(f"\nFinal Statistics:")
-            logging.info(f"Total rides retrieved: {actual_rides}/{total_rides}")
-            logging.info(f"Total distance: {total_meters / 1000:.1f}km")
-            logging.info(f"Date range: {earliest_date} to {latest_date}")
-
-            if actual_rides < total_rides:
-                logging.warning(f"Missing {total_rides - actual_rides} rides!")
-
-            # Log ride ID ranges
-            ride_ids = [trip.get('id') for trip in all_trips]
-            logging.info(f"Ride ID range: {min(ride_ids)} to {max(ride_ids)}")
-
-            # Check for gaps in ride IDs
-            sorted_ids = sorted(ride_ids)
-            gaps = []
-            for i in range(len(sorted_ids) - 1):
-                if sorted_ids[i + 1] - sorted_ids[i] > 1:
-                    gaps.append((sorted_ids[i], sorted_ids[i + 1]))
-            if gaps:
-                logging.warning(f"Found gaps in ride IDs: {gaps}")
+            elapsed_time = time.time() - start_time
+            logging.info(f"Retrieved {len(all_trips)} rides in {elapsed_time:.1f} seconds")
 
             return all_trips
 
