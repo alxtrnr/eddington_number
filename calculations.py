@@ -1,4 +1,5 @@
 # calculations.py
+
 import logging
 from typing import List, Dict, Tuple
 from collections import defaultdict
@@ -6,29 +7,40 @@ from datetime import datetime
 from decimal import Decimal, getcontext
 
 getcontext().prec = 28  # Adjust precision as needed
+
+# Conversion constants
 METERS_TO_MILES = Decimal("0.000621371192237334")
+METERS_TO_KM = Decimal("0.001")
 
 
-def calculate_eddington(distances: List[Decimal]) -> int:
+def calculate_eddington(distances: List[Decimal], unit: str = 'miles') -> int:
     """
     Calculate the Eddington number from a list of ride distances.
-    The Eddington number E is the number where you have done E rides of at least E miles.
+    The Eddington number E is the number where you have done E rides of at least E units.
+
+    Args:
+        distances: List of ride distances in the specified unit
+        unit: The unit of measurement ('miles' or 'km')
     """
     if not distances:
         return 0
+
     max_possible_e = int(max(distances)) + 1
     rides_above_threshold = [0] * (max_possible_e + 1)
+
     for distance in distances:
         for e in range(1, int(distance) + 1):
             rides_above_threshold[e] += 1
+
     E = 0
     for i in range(1, max_possible_e + 1):
         if rides_above_threshold[i] >= i:
             E = i
+
     return E
 
 
-def calculate_statistics(distances: List[Decimal]) -> Dict[str, Decimal]:
+def calculate_statistics(distances: List[Decimal], unit: str = 'miles') -> Dict[str, Decimal]:
     """Calculate various statistics from ride distances."""
     if not distances:
         return {
@@ -39,7 +51,6 @@ def calculate_statistics(distances: List[Decimal]) -> Dict[str, Decimal]:
 
     # Keep full precision throughout calculations
     total_distance = sum(distances)
-
     return {
         'longest_ride': max(distances),
         'average_ride': total_distance / Decimal(len(distances)),
@@ -47,13 +58,17 @@ def calculate_statistics(distances: List[Decimal]) -> Dict[str, Decimal]:
     }
 
 
-def calculate_yearly_eddington(trips: List[Dict]) -> Dict[int, int]:
+def calculate_yearly_eddington(trips: List[Dict], unit: str = 'miles') -> Dict[int, int]:
     """
     Calculate Eddington numbers per year.
     Returns a dictionary with years as keys and Eddington numbers as values.
     """
     yearly_distances = defaultdict(list)
     current_year = datetime.now().year
+
+    # Select the appropriate conversion factor
+    conversion_factor = METERS_TO_MILES if unit == 'miles' else METERS_TO_KM
+
     for trip in trips:
         if 'distance' in trip:
             for date_field in ['departed_at', 'start_date', 'scheduled_date', 'created_at']:
@@ -62,27 +77,27 @@ def calculate_yearly_eddington(trips: List[Dict]) -> Dict[int, int]:
                         date_str = trip[date_field].split('+')[0].rstrip('Z')
                         trip_date = datetime.fromisoformat(date_str)
                         if trip_date.year <= current_year:
-                            distance = Decimal(str(trip['distance'])) * Decimal("0.000621371")
+                            distance = Decimal(str(trip['distance'])) * conversion_factor
                             yearly_distances[trip_date.year].append(distance)
                             break
                     except ValueError:
                         continue
-    return {year: calculate_eddington(yearly_distances[year])
+
+    return {year: calculate_eddington(yearly_distances[year], unit)
             for year in yearly_distances.keys()}
 
 
-def calculate_overall_e_progress(distances: List[Decimal]) -> Tuple[int, int, int, int, int]:
+def calculate_overall_e_progress(distances: List[Decimal], unit: str = 'miles') -> Tuple[int, int, int, int, int]:
     """
     Calculate current E and progress towards next E numbers.
     Returns (current_e, rides_at_next, rides_needed_next, rides_at_nextnext, rides_needed_nextnext)
     """
-    current_e = calculate_eddington(distances)
+    current_e = calculate_eddington(distances, unit)
     next_e = current_e + 1
     nextnext_e = next_e + 1
 
     rides_at_next = sum(1 for d in distances if d >= next_e)
     rides_needed_next = next_e - rides_at_next
-
     rides_at_nextnext = sum(1 for d in distances if d >= nextnext_e)
     rides_needed_nextnext = nextnext_e - rides_at_nextnext
 
@@ -99,10 +114,10 @@ def get_highest_yearly_eddington(yearly_eddington: Dict[int, int]) -> Tuple[int,
     return max(yearly_eddington.items(), key=lambda x: x[1])
 
 
-def analyze_ride_distribution(distances: List[Decimal]) -> Dict[int, int]:
+def analyze_ride_distribution(distances: List[Decimal], unit: str = 'miles') -> Dict[int, int]:
     """
     Analyze distribution of rides by distance thresholds.
-    Returns dictionary with mile thresholds as keys and number of rides above that threshold as values.
+    Returns dictionary with distance thresholds as keys and number of rides above that threshold as values.
     """
     thresholds = {}
     for threshold in range(0, int(max(distances)) + 10, 10):
@@ -112,17 +127,17 @@ def analyze_ride_distribution(distances: List[Decimal]) -> Dict[int, int]:
     return thresholds
 
 
-def verify_eddington(distances: List[Decimal], e_number: int) -> str:
+def verify_eddington(distances: List[Decimal], e_number: int, unit: str = 'miles') -> str:
     """
     Verify Eddington number calculation with detailed breakdown.
     Returns a string with verification details.
     """
     rides_at_e = sum(1 for d in distances if d >= e_number)
     return f"\nEddington verification (E={e_number}):\n" \
-           f"Number of rides >= {e_number} miles: {rides_at_e}"
+           f"Number of rides >= {e_number} {unit}: {rides_at_e}"
 
 
-def get_milestone_rides(distances: List[Decimal]) -> Dict[str, List[Decimal]]:
+def get_milestone_rides(distances: List[Decimal], unit: str = 'miles') -> Dict[str, any]:
     """
     Identify milestone rides (longest, shortest, etc.).
     Returns dictionary with milestone categories and corresponding distances.
@@ -132,11 +147,22 @@ def get_milestone_rides(distances: List[Decimal]) -> Dict[str, List[Decimal]]:
 
     sorted_distances = sorted(distances)
 
-    centuries = sum(1 for d in distances if d >= 100)
-    double_centuries = sum(1 for d in distances if d >= 200)
-    triple_centuries = sum(1 for d in distances if d >= 300)
-    quad_centuries = sum(1 for d in distances if d >= 400)
+    # Define thresholds based on unit
+    if unit == 'miles':
+        century = 100
+        double_century = 200
+        triple_century = 300
+        quad_century = 400
+    else:  # kilometers
+        century = 160  # ~100 miles in km
+        double_century = 320  # ~200 miles in km
+        triple_century = 480  # ~300 miles in km
+        quad_century = 640  # ~400 miles in km
 
+    centuries = sum(1 for d in distances if d >= century)
+    double_centuries = sum(1 for d in distances if d >= double_century)
+    triple_centuries = sum(1 for d in distances if d >= triple_century)
+    quad_centuries = sum(1 for d in distances if d >= quad_century)
     longest_rides = sorted(distances, reverse=True)[:5]
 
     return {
@@ -152,92 +178,95 @@ def get_milestone_rides(distances: List[Decimal]) -> Dict[str, List[Decimal]]:
     }
 
 
-def get_ride_titles(trips: List[Dict], distances: List[Decimal]) -> List[Tuple[Decimal, str]]:
+def get_ride_titles(trips: List[Dict], distances: List[Decimal], unit: str = 'miles') -> List[Tuple[Decimal, str]]:
     """Get distances paired with their ride titles, sorted by distance."""
     distance_title_pairs = []
+
+    # Select the appropriate conversion factor
+    conversion_factor = METERS_TO_MILES if unit == 'miles' else METERS_TO_KM
 
     for trip in trips:
         if 'distance' in trip and 'name' in trip and trip['name']:
             try:
-                distance_miles = Decimal(str(trip['distance'])) * METERS_TO_MILES
-                distance_title_pairs.append((distance_miles, trip['name']))
+                distance = Decimal(str(trip['distance'])) * conversion_factor
+                distance_title_pairs.append((distance, trip['name']))
             except (ValueError, TypeError) as e:
                 logging.error(f"Error processing ride {trip.get('id', 'unknown')}: {e}")
 
     return sorted(distance_title_pairs, key=lambda x: x[0], reverse=True)[:5]
 
 
-def analyze_ride_metrics(trips: List[Dict]) -> Dict:
+def analyze_ride_metrics(trips: List[Dict], unit: str = 'miles') -> Dict:
     """Calculate advanced riding metrics."""
     monthly_totals = defaultdict(Decimal)
     monthly_counts = defaultdict(int)
     processed_ids = set()
 
+    # Select the appropriate conversion factor
+    conversion_factor = METERS_TO_MILES if unit == 'miles' else METERS_TO_KM
+
     for trip in trips:
         if 'distance' in trip and trip['id'] not in processed_ids:
             processed_ids.add(trip['id'])
-
             date_str = trip.get('departed_at', trip.get('created_at'))
             if not date_str:
                 continue
 
             date_str = date_str.split('+')[0].rstrip('Z')
             date = datetime.fromisoformat(date_str)
-
-            distance_miles = Decimal(str(trip['distance'])) * Decimal("0.000621371")
-
+            distance = Decimal(str(trip['distance'])) * conversion_factor
             month_key = f"{date.year}-{date.month:02d}"
-            monthly_totals[month_key] += distance_miles
+
+            monthly_totals[month_key] += distance
             monthly_counts[month_key] += 1
 
-            logging.debug(f"Ride {trip['id']}: {trip['distance']}m = {distance_miles:.2f} miles")
-            logging.debug(f"Month {month_key} total: {monthly_totals[month_key]:.2f} miles")
+            logging.debug(f"Ride {trip['id']}: {trip['distance']}m = {distance:.2f} {unit}")
+            logging.debug(f"Month {month_key} total: {monthly_totals[month_key]:.2f} {unit}")
 
-    current_e = calculate_eddington([
-        Decimal(str(trip['distance'])) * Decimal("0.000621371")
+    # Convert trips to distances with the appropriate unit
+    distances = [
+        Decimal(str(trip['distance'])) * conversion_factor
         for trip in trips
         if 'distance' in trip
-    ])
+    ]
+
+    current_e = calculate_eddington(distances, unit)
 
     return {
         'monthly_totals': dict(monthly_totals),
         'monthly_counts': dict(monthly_counts),
-        'rides_needed_next_e': calculate_rides_needed_next([
-            Decimal(str(trip['distance'])) * Decimal("0.000621371")
-            for trip in trips
-            if 'distance' in trip
-        ]),
-        'milestone_rides': get_milestone_rides([
-            Decimal(str(trip['distance'])) * Decimal("0.000621371")
-            for trip in trips
-            if 'distance' in trip
-        ]),
+        'rides_needed_next_e': calculate_rides_needed_next(distances, unit),
+        'milestone_rides': get_milestone_rides(distances, unit),
         'next_e_target': current_e + 1
     }
 
 
-def calculate_rides_needed_next(distances: List[Decimal]) -> int:
+def calculate_rides_needed_next(distances: List[Decimal], unit: str = 'miles') -> int:
     """Calculate rides needed for next Eddington number."""
-    current_e = calculate_eddington(distances)
+    current_e = calculate_eddington(distances, unit)
     target = current_e + 1
     current_qualifying = sum(1 for d in distances if d >= target)
     return target - current_qualifying
 
 
-def calculate_next_yearly_e(trips: List[Dict], year: int) -> Tuple[int, int, int]:
+def calculate_next_yearly_e(trips: List[Dict], year: int, unit: str = 'miles') -> Tuple[int, int, int]:
     """
     Calculate the next E number goal for the specified year and rides needed.
     Returns (next_e, rides_at_target, rides_needed)
     """
+    # Select the appropriate conversion factor
+    conversion_factor = METERS_TO_MILES if unit == 'miles' else METERS_TO_KM
+
     yearly_distances = [
-        Decimal(str(trip['distance'])) * Decimal("0.000621371")
+        Decimal(str(trip['distance'])) * conversion_factor
         for trip in trips
         if 'distance' in trip and 'created_at' in trip
         and datetime.strptime(trip['created_at'], "%Y-%m-%dT%H:%M:%SZ").year == year
     ]
 
-    current_e = calculate_eddington(yearly_distances)
+    current_e = calculate_eddington(yearly_distances, unit)
     next_e = current_e + 1
     rides_at_next_e = sum(1 for d in yearly_distances if d >= next_e)
     rides_needed = next_e - rides_at_next_e
+
     return next_e, rides_at_next_e, rides_needed

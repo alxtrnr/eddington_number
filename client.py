@@ -33,7 +33,6 @@ class RWGPSClient:
             if self.auth_token:
                 save_token(self.auth_token)
 
-
     def _create_session(self) -> requests.Session:
         retry_strategy = Retry(
             total=3,

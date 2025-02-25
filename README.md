@@ -1,122 +1,113 @@
-# Cycling Statistics Analyzer
+# Cycling Statistics App
 
-A comprehensive Python application that analyzes cycling data from Ride with GPS, providing detailed statistics, Eddington numbers, and ride metrics.
+A Python application that interfaces with the Ride With GPS (RWGPS) API to analyse cycling data and calculate various metrics, with a particular focus on the Eddington number.
+
+## What is the Eddington Number?
+
+The Eddington number (E) for cycling is the maximum number such that you have completed E rides of at least E distance units (miles or kilometers). For example, an Eddington number of 70 means you have completed at least 70 rides that were each at least 70 miles long.
 
 ## Features
 
-- Overall and yearly Eddington number calculations
-- Monthly and yearly statistics tracking
-- Detailed ride distribution analysis
-- Progress tracking towards next achievement levels
-- Milestone achievements (centuries, double centuries, etc.)
-- Data caching system for efficient API usage
-- Secure credential management
+- Calculate your overall Eddington number
+- Track yearly Eddington numbers
+- Monitor progress toward your next Eddington milestone
+- View year-to-date statistics
+- Analyse ride distribution by distance
+- Track milestone achievements (century rides, etc.)
+- View your top 5 longest rides
+- Examine monthly riding statistics
+- Support for both miles and kilometers
 
-## Requirements
+## Prerequisites
 
-- Python 3.x
-- Ride with GPS account
-- Environment Variables:
-  - RWGPS_API_KEY
+Before you begin, ensure you have:
+
+- Python 3.7 or higher installed
+- A Ride With GPS account
+- An API key from Ride With GPS
 
 ## Installation
 
-1. Clone the repository
-2. Install dependencies:
-```bash
-pip install requests python-dotenv tqdm
-```
-3. Create a `.env` file with your API key:
-```bash
-RWGPS_API_KEY=your_api_key
-```
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/yourusername/cycling-statistics.git
+   cd cycling-statistics
+   ```
+
+2. Create a virtual environment and activate it:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Create a `.env` file in the project root with your RWGPS API key:
+   ```
+   RWGPS_API_KEY=your_api_key_here
+   RWGPS_DEFAULT_UNIT=miles  # or km
+   ```
 
 ## Usage
 
-Run the main application:
-```bash
-python main.py
-```
+The application provides a command-line interface with various subcommands:
 
-Or use specific commands:
 ```bash
+# Display full statistics summary
 python cli.py summary
+
+# Show Eddington number progress
 python cli.py eddington
+
+# Show year-to-date statistics
 python cli.py ytd
+
+# Show yearly Eddington numbers
 python cli.py yearly
+
+# Show ride metrics
 python cli.py metrics
+
+# Show ride distribution
 python cli.py distribution
+
+# Show milestone achievements
 python cli.py milestones
+
+# Show top 5 longest rides
 python cli.py longest
+
+# Show monthly statistics
 python cli.py monthly
+
+# Change distance unit
+python cli.py unit km  # or miles
+
+# Show current settings
+python cli.py status
 ```
 
-## Project Structure
+### Command Options
 
+- `--unit {miles,km}`: Set the distance unit for the current command
+- `--refresh`: Force refresh data instead of using cache
+
+## Configuration
+
+The application stores your preferred unit (miles or km) and caches ride data to minimise API calls. You can view your current settings with:
+
+```bash
+python cli.py status
 ```
-cycling-stats/
-├── main.py         # Main application entry point
-├── cli.py          # Command-line interface
-├── client.py       # RWGPS API client
-├── auth.py         # Authentication handling
-├── config.py       # Configuration settings
-├── calculations.py # Statistical calculations
-└── utils.py        # Utility functions
-```
 
-## Features in Detail
+## Authentication
 
-**Authentication**
-- Secure credential handling
-- Optional credential saving
-- Token-based authentication
-
-**Data Management**
-- Efficient API rate limiting
-- Smart caching system
-- Incremental updates
-
-**Statistical Analysis**
-- Overall Eddington number
-- Yearly Eddington numbers
-- Monthly distance totals
-- Ride distribution analysis
-- Milestone tracking
-
-**Progress Tracking**
-- Current achievement levels
-- Progress towards next goals
-- Detailed breakdowns of rides needed
-
-## Command Options
-
-- `summary`: Display complete statistics overview
-- `eddington`: Show Eddington number progress
-- `ytd`: Display year-to-date statistics
-- `yearly`: Show yearly Eddington numbers
-- `metrics`: Display ride metrics
-- `distribution`: Show ride distribution
-- `milestones`: Display milestone achievements
-- `longest`: Show top 5 longest rides
-- `monthly`: Display monthly statistics
-
-## Security
-
-- Secure credential storage
-- Environment variable configuration
-- Token-based API authentication
-
-## Data Processing
-
-- Precise decimal calculations
-- Comprehensive error handling
-- Efficient data caching
-- Smart update system that only fetches new rides
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss proposed changes.
+On first run, you'll be prompted to enter your Ride With GPS email and password. You can choose to save these credentials locally for future use.
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
