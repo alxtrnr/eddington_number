@@ -1,4 +1,4 @@
-# Cycling Statistics App
+# Eddington Number. A Cycling Statistics App
 
 A Python application that interfaces with the Ride With GPS (RWGPS) API to analyse cycling data and calculate various metrics, with a particular focus on the Eddington number.
 
@@ -30,8 +30,8 @@ Before you begin, ensure you have:
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/cycling-statistics.git
-   cd cycling-statistics
+   git clone https://github.com/yourusername/eddington_number.git
+   cd eddington_number
    ```
 
 2. Create a virtual environment and activate it:
