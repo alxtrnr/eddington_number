@@ -215,10 +215,17 @@ def main(unit: str = DEFAULT_UNIT, refresh_cache: bool = False):
 
         print("\n=== MILESTONE ACHIEVEMENTS ===")
         milestones = advanced_metrics['milestone_rides']
-        print(f"Century rides (100+ {unit}): {milestones['centuries']}")
-        print(f"Double centuries (200+ {unit}): {milestones['double_centuries']}")
-        print(f"Triple centuries (300+ {unit}): {milestones['triple_centuries']}")
-        print(f"Quad centuries (400+ {unit}): {milestones['quad_centuries']}")
+        if unit == 'miles':
+            print(f"Century rides (100+ {unit}): {milestones['centuries']}")
+            print(f"Double centuries (200+ {unit}): {milestones['double_centuries']}")
+            print(f"Triple centuries (300+ {unit}): {milestones['triple_centuries']}")
+            print(f"Quad centuries (400+ {unit}): {milestones['quad_centuries']}")
+        else:  # kilometers - display Audax distance ranges
+            print(f"200-300 {unit}: {milestones['range_200_to_300']}")
+            print(f"300-400 {unit}: {milestones['range_300_to_400']}")
+            print(f"400-600 {unit}: {milestones['range_400_to_600']}")
+            print(f"600-1200 {unit}: {milestones['range_600_to_1200']}")
+            print(f"1200+ {unit}: {milestones['range_1200_plus']}")
 
         print("\n=== TOP 5 LONGEST RIDES === ")
         distance_titles = get_ride_titles(trips, distances, unit)

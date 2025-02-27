@@ -148,33 +148,56 @@ def get_milestone_rides(distances: List[Decimal], unit: str = 'miles') -> Dict[s
 
     # Define thresholds based on unit
     if unit == 'miles':
+        # Keep existing century-based thresholds for miles
         century = 100
         double_century = 200
         triple_century = 300
         quad_century = 400
-    else:  # kilometers
-        century = 160  # ~100 miles in km
-        double_century = 320  # ~200 miles in km
-        triple_century = 480  # ~300 miles in km
-        quad_century = 640  # ~400 miles in km
 
-    centuries = sum(1 for d in distances if d >= century)
-    double_centuries = sum(1 for d in distances if d >= double_century)
-    triple_centuries = sum(1 for d in distances if d >= triple_century)
-    quad_centuries = sum(1 for d in distances if d >= quad_century)
-    longest_rides = sorted(distances, reverse=True)[:5]
+        centuries = sum(1 for d in distances if d >= century)
+        double_centuries = sum(1 for d in distances if d >= double_century)
+        triple_centuries = sum(1 for d in distances if d >= triple_century)
+        quad_centuries = sum(1 for d in distances if d >= quad_century)
 
-    return {
-        'total_rides': len(distances),
-        'longest': sorted_distances[-1],
-        'shortest': sorted_distances[0],
-        'median': sorted_distances[len(sorted_distances) // 2],
-        'centuries': centuries,
-        'double_centuries': double_centuries,
-        'triple_centuries': triple_centuries,
-        'quad_centuries': quad_centuries,
-        'longest_rides': longest_rides
-    }
+        milestones = {
+            'total_rides': len(distances),
+            'longest': sorted_distances[-1],
+            'shortest': sorted_distances[0],
+            'median': sorted_distances[len(sorted_distances) // 2],
+            'centuries': centuries,
+            'double_centuries': double_centuries,
+            'triple_centuries': triple_centuries,
+            'quad_centuries': quad_centuries,
+            'longest_rides': sorted(distances, reverse=True)[:5]
+        }
+    else:  # kilometers - use Audax distance ranges
+        audax_200k = 200
+        audax_300k = 300
+        audax_400k = 400
+        audax_600k = 600
+        audax_1200k = 1200
+
+        # Count rides within specific ranges
+        range_200_to_300 = sum(1 for d in distances if audax_200k <= d < audax_300k)
+        range_300_to_400 = sum(1 for d in distances if audax_300k <= d < audax_400k)
+        range_400_to_600 = sum(1 for d in distances if audax_400k <= d < audax_600k)
+        range_600_to_1200 = sum(1 for d in distances if audax_600k <= d < audax_1200k)
+        range_1200_plus = sum(1 for d in distances if d >= audax_1200k)
+
+        milestones = {
+            'total_rides': len(distances),
+            'longest': sorted_distances[-1],
+            'shortest': sorted_distances[0],
+            'median': sorted_distances[len(sorted_distances) // 2],
+            'range_200_to_300': range_200_to_300,
+            'range_300_to_400': range_300_to_400,
+            'range_400_to_600': range_400_to_600,
+            'range_600_to_1200': range_600_to_1200,
+            'range_1200_plus': range_1200_plus,
+            'longest_rides': sorted(distances, reverse=True)[:5]
+        }
+
+    return milestones
 
 
 def get_ride_titles(trips: List[Dict], distances: List[Decimal], unit: str = 'miles') -> List[Tuple[Decimal, str]]:
