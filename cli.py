@@ -87,9 +87,18 @@ def display_eddington(trips: List[dict], distances: List[Decimal], unit: str = '
 def display_ytd(trips: List[dict], yearly_eddington: Dict[int, int], unit: str = 'miles') -> None:
     current_year = datetime.now().year
     if current_year in yearly_eddington:
-        ytd_rides = [trip for trip in trips
-                     if datetime.strptime(trip['created_at'],
-                                          "%Y-%m-%dT%H:%M:%SZ").year == current_year]
+        ytd_rides = []
+        for trip in trips:
+            date_str = trip.get('departed_at')
+            if date_str:
+                try:
+                    date_str = date_str.split('+')[0].rstrip('Z')
+                    trip_date = datetime.fromisoformat(date_str)
+                    if trip_date.year == current_year:
+                        ytd_rides.append(trip)
+                except ValueError:
+                    continue
+
         ytd_distances = process_trips(ytd_rides, unit)
         ytd_stats = calculate_statistics(ytd_distances, unit)
         next_e, rides_at_target, rides_needed = calculate_next_yearly_e(trips, current_year, unit)

@@ -106,7 +106,6 @@ def process_trips(trips: List[dict], unit: str = 'miles') -> List[Decimal]:
     total_meters = Decimal('0')
     api_total = 0.0  # Float for raw API comparison
     yearly_totals = defaultdict(Decimal)
-
     for trip in trips:
         if 'distance' in trip:
             # Store both raw API value and Decimal conversion
@@ -114,9 +113,16 @@ def process_trips(trips: List[dict], unit: str = 'miles') -> List[Decimal]:
             api_total += raw_distance
             meters = Decimal(str(trip['distance']))
             total_meters += meters
+
             # Track by year for pattern analysis
-            year = datetime.fromisoformat(trip['created_at'].split('Z')[0]).year
-            yearly_totals[year] += meters
+            date_str = trip.get('departed_at')
+            if date_str:
+                try:
+                    date_str = date_str.split('+')[0].rstrip('Z')
+                    trip_date = datetime.fromisoformat(date_str)
+                    yearly_totals[trip_date.year] += meters
+                except ValueError:
+                    continue
 
     return [Decimal(str(trip['distance'])) * conversion_factor for trip in trips if 'distance' in trip]
 
@@ -168,9 +174,17 @@ def main(unit: str = DEFAULT_UNIT, refresh_cache: bool = False):
         current_year = datetime.now().year
         if current_year in yearly_eddington:
             print(f"\n=== EDDINGTON YEAR TO DATE ({current_year}) ===")
-            ytd_rides = [trip for trip in trips
-                         if datetime.strptime(trip['created_at'],
-                                              "%Y-%m-%dT%H:%M:%SZ").year == current_year]
+            ytd_rides = []
+            for trip in trips:
+                date_str = trip.get('departed_at')
+                if date_str:
+                    try:
+                        date_str = date_str.split('+')[0].rstrip('Z')
+                        trip_date = datetime.fromisoformat(date_str)
+                        if trip_date.year == current_year:
+                            ytd_rides.append(trip)
+                    except ValueError:
+                        continue
             ytd_distances = process_trips(ytd_rides, unit)
             ytd_stats = calculate_statistics(ytd_distances, unit)
             next_e, rides_at_target, rides_needed = calculate_next_yearly_e(trips, current_year, unit)

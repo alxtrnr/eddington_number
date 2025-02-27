@@ -71,17 +71,16 @@ def calculate_yearly_eddington(trips: List[Dict], unit: str = 'miles') -> Dict[i
 
     for trip in trips:
         if 'distance' in trip:
-            for date_field in ['departed_at', 'start_date', 'scheduled_date', 'created_at']:
-                if date_field in trip and trip[date_field]:
-                    try:
-                        date_str = trip[date_field].split('+')[0].rstrip('Z')
-                        trip_date = datetime.fromisoformat(date_str)
-                        if trip_date.year <= current_year:
-                            distance = Decimal(str(trip['distance'])) * conversion_factor
-                            yearly_distances[trip_date.year].append(distance)
-                            break
-                    except ValueError:
-                        continue
+            date_str = trip.get('departed_at')
+            if date_str:
+                try:
+                    date_str = date_str.split('+')[0].rstrip('Z')
+                    trip_date = datetime.fromisoformat(date_str)
+                    if trip_date.year <= current_year:
+                        distance = Decimal(str(trip['distance'])) * conversion_factor
+                        yearly_distances[trip_date.year].append(distance)
+                except ValueError:
+                    continue
 
     return {year: calculate_eddington(yearly_distances[year], unit)
             for year in yearly_distances.keys()}
@@ -208,27 +207,35 @@ def analyze_ride_metrics(trips: List[Dict], unit: str = 'miles') -> Dict:
     for trip in trips:
         if 'distance' in trip and trip['id'] not in processed_ids:
             processed_ids.add(trip['id'])
-            date_str = trip.get('departed_at', trip.get('created_at'))
+            date_str = trip.get('departed_at')
             if not date_str:
                 continue
 
             date_str = date_str.split('+')[0].rstrip('Z')
-            date = datetime.fromisoformat(date_str)
-            distance = Decimal(str(trip['distance'])) * conversion_factor
-            month_key = f"{date.year}-{date.month:02d}"
-
-            monthly_totals[month_key] += distance
-            monthly_counts[month_key] += 1
-
-            logging.debug(f"Ride {trip['id']}: {trip['distance']}m = {distance:.2f} {unit}")
-            logging.debug(f"Month {month_key} total: {monthly_totals[month_key]:.2f} {unit}")
+            try:
+                date = datetime.fromisoformat(date_str)
+                distance = Decimal(str(trip['distance'])) * conversion_factor
+                month_key = f"{date.year}-{date.month:02d}"
+                monthly_totals[month_key] += distance
+                monthly_counts[month_key] += 1
+                logging.debug(f"Ride {trip['id']}: {trip['distance']}m = {distance:.2f} {unit}")
+                logging.debug(f"Month {month_key} total: {monthly_totals[month_key]:.2f} {unit}")
+            except ValueError:
+                continue
 
     # Convert trips to distances with the appropriate unit
-    distances = [
-        Decimal(str(trip['distance'])) * conversion_factor
-        for trip in trips
-        if 'distance' in trip
-    ]
+    distances = []
+    for trip in trips:
+        if 'distance' in trip:
+            date_str = trip.get('departed_at')
+            if date_str:
+                try:
+                    date_str = date_str.split('+')[0].rstrip('Z')
+                    datetime.fromisoformat(date_str)  # Just to validate the date
+                    distance = Decimal(str(trip['distance'])) * conversion_factor
+                    distances.append(distance)
+                except ValueError:
+                    continue
 
     current_e = calculate_eddington(distances, unit)
 
@@ -257,12 +264,19 @@ def calculate_next_yearly_e(trips: List[Dict], year: int, unit: str = 'miles') -
     # Select the appropriate conversion factor
     conversion_factor = METERS_TO_MILES if unit == 'miles' else METERS_TO_KM
 
-    yearly_distances = [
-        Decimal(str(trip['distance'])) * conversion_factor
-        for trip in trips
-        if 'distance' in trip and 'created_at' in trip
-        and datetime.strptime(trip['created_at'], "%Y-%m-%dT%H:%M:%SZ").year == year
-    ]
+    yearly_distances = []
+    for trip in trips:
+        if 'distance' in trip:
+            date_str = trip.get('departed_at')
+            if date_str:
+                try:
+                    date_str = date_str.split('+')[0].rstrip('Z')
+                    trip_date = datetime.fromisoformat(date_str)
+                    if trip_date.year == year:
+                        distance = Decimal(str(trip['distance'])) * conversion_factor
+                        yearly_distances.append(distance)
+                except ValueError:
+                    continue
 
     current_e = calculate_eddington(yearly_distances, unit)
     next_e = current_e + 1
@@ -270,3 +284,4 @@ def calculate_next_yearly_e(trips: List[Dict], year: int, unit: str = 'miles') -
     rides_needed = next_e - rides_at_next_e
 
     return next_e, rides_at_next_e, rides_needed
+
