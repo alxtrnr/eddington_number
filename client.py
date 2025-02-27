@@ -149,24 +149,42 @@ class RWGPSClient:
             return self.get_all_trips()
 
         latest_cached_id = max(trip['id'] for trip in cached_trips)
+        cached_ids = {trip['id'] for trip in cached_trips}
         missing_trips = []
 
         if latest_trip['id'] > latest_cached_id:
             page = 1
+            found_all_new = False
             with tqdm(desc="Fetching new rides") as pbar:
-                while True:
+                while not found_all_new:
                     time.sleep(1)  # Rate limiting
                     new_trips = self.get_trips_page(page)
+
                     if not new_trips:
                         break
 
-                    # Only keep trips that are newer than our latest cached
-                    new_trips = [trip for trip in new_trips if trip['id'] > latest_cached_id]
-                    if not new_trips:
+                    # Keep only trips that aren't already in the cache
+                    filtered_trips = [trip for trip in new_trips if trip['id'] not in cached_ids]
+
+                    if not filtered_trips:
+                        # If this page had no new trips, continue to next page
+                        page += 1
+                        continue
+
+                    missing_trips.extend(filtered_trips)
+                    pbar.update(len(filtered_trips))
+
+                    # Check if we've found the latest trip
+                    if any(trip['id'] == latest_trip['id'] for trip in filtered_trips):
+                        found_all_new = True
                         break
 
-                    missing_trips.extend(new_trips)
-                    pbar.update(len(new_trips))
+                    # If we've gone through several pages without finding all new trips,
+                    # we might need to implement a different strategy
+                    if page > 10:  # Arbitrary limit to prevent infinite loops
+                        logging.warning("Reached page limit without finding all new trips")
+                        break
+
                     page += 1
 
         return missing_trips
