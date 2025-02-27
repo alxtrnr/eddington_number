@@ -131,9 +131,29 @@ def display_metrics(stats: Dict[str, Decimal], unit: str = 'miles') -> None:
 def display_distribution(distances: List[Decimal], unit: str = 'miles') -> None:
     print(f"\n=== RIDE DISTRIBUTION ===")
     distribution = analyze_ride_distribution(distances, unit)
-    for threshold in sorted(distribution.keys()):
-        if threshold % 20 == 0:
-            print(f">= {threshold} {unit}: {distribution[threshold]} rides")
+
+    # Create range buckets (e.g., 0-20, 20-40, 40-60, etc.)
+    buckets = {}
+    bucket_size = 20  # Adjust bucket size as needed
+    max_distance = max(distances) if distances else 0
+
+    for i in range(0, int(max_distance) + bucket_size, bucket_size):
+        lower = i
+        upper = i + bucket_size
+
+        # Count rides in this range
+        count = sum(1 for d in distances if lower <= d < upper)
+        if count > 0:
+            buckets[f"{lower}-{upper}"] = count
+
+    # Display as table with percentages
+    total = len(distances)
+    print(f"{'Range':<15} | {'Count':<6} | {'Percentage':<10}")
+    print(f"{'-'*15}-|{'-'*8}|{'-'*10}")
+
+    for range_label, count in buckets.items():
+        percentage = (count / total) * 100
+        print(f"{range_label:<15} | {count:<6} | {percentage:.2f}%")
 
 
 def display_milestones(metrics: Dict, unit: str = 'miles') -> None:
