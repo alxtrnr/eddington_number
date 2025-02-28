@@ -57,7 +57,7 @@ def create_parser() -> argparse.ArgumentParser:
     subparsers.add_parser('yearly', help='Show yearly Eddington numbers')
     subparsers.add_parser('metrics', help='Show ride metrics')
     subparsers.add_parser('distribution', help='Show ride distribution')
-    subparsers.add_parser('milestones', help='Show milestone achievements')
+    subparsers.add_parser('distance', help='Show distance achievements')
     subparsers.add_parser('longest', help='Show top 5 longest rides')
     subparsers.add_parser('monthly', help='Show monthly statistics')
 
@@ -134,7 +134,7 @@ def display_distribution(distances: List[Decimal], unit: str = 'miles') -> None:
 
     # Create range buckets (e.g., 0-20, 20-40, 40-60, etc.)
     buckets = {}
-    bucket_size = 20  # Adjust bucket size as needed
+    bucket_size = 50  # Adjust bucket size as needed
     max_distance = max(distances) if distances else 0
 
     for i in range(0, int(max_distance) + bucket_size, bucket_size):
@@ -149,28 +149,30 @@ def display_distribution(distances: List[Decimal], unit: str = 'miles') -> None:
     # Display as table with percentages
     total = len(distances)
     print(f"{'Range':<15} | {'Count':<6} | {'Percentage':<10}")
-    print(f"{'-'*15}-|{'-'*8}|{'-'*10}")
+    print(f"{'-' * 15}-|{'-' * 8}|{'-' * 10}")
 
     for range_label, count in buckets.items():
         percentage = (count / total) * 100
-        print(f"{range_label:<15} | {count:<6} | {percentage:.2f}%")
+        print(f"{range_label: <15} | {count: <6} | {percentage:.2f}%")
 
 
 def display_milestones(metrics: Dict, unit: str = 'miles') -> None:
-    print("\n=== MILESTONE ACHIEVEMENTS ===")
+    print("\n=== DISTANCE ACHIEVEMENTS ===")
     milestones = metrics['milestone_rides']
-
     if unit == 'miles':
         print(f"Century rides (100+ {unit}): {milestones['centuries']}")
         print(f"Double centuries (200+ {unit}): {milestones['double_centuries']}")
         print(f"Triple centuries (300+ {unit}): {milestones['triple_centuries']}")
         print(f"Quad centuries (400+ {unit}): {milestones['quad_centuries']}")
-    else:  # kilometers - display Audax distance ranges
-        print(f"200-300 {unit}: {milestones['range_200_to_300']}")
-        print(f"300-400 {unit}: {milestones['range_300_to_400']}")
-        print(f"400-600 {unit}: {milestones['range_400_to_600']}")
-        print(f"600-1200 {unit}: {milestones['range_600_to_1200']}")
-        print(f"1200+ {unit}: {milestones['range_1200_plus']}")
+    else:  # kilometers - display new distance ranges
+        print(f"Randonneur 50 {unit}: {milestones['range_50_to_99']}")
+        print(f"Randonneur 100 {unit}: {milestones['range_100_to_149']}")
+        print(f"Randonneur 150 {unit}: {milestones['range_150_to_199']}")
+        print(f"Randonneur 200 {unit}: {milestones['range_200_to_299']}")
+        print(f"Randonneur 300 {unit}: {milestones['range_300_to_399']}")
+        print(f"Randonneur 400 {unit}: {milestones['range_400_to_599']}")
+        print(f"Randonneur 600 {unit}: {milestones['range_600_to_999']}")
+        print(f"Randonneur 1000 {unit}: {milestones['range_1000_plus']}")
 
 
 def display_longest(trips: List[dict], distances: List[Decimal], unit: str = 'miles') -> None:
@@ -291,7 +293,7 @@ def main():
         display_metrics(stats, unit)
     elif args.command == 'distribution':
         display_distribution(distances, unit)
-    elif args.command == 'milestones':
+    elif args.command == 'distance':
         display_milestones(metrics, unit)
     elif args.command == 'longest':
         display_longest(trips, distances, unit)

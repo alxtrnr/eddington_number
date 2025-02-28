@@ -208,32 +208,48 @@ def main(unit: str = DEFAULT_UNIT, refresh_cache: bool = False):
         print(f"Total distance: {stats['total_distance']:.1f} {unit}")
 
         print("\n=== RIDE DISTRIBUTION ===")
-        distribution = analyze_ride_distribution(distances, unit)
-        for distance_threshold in sorted(distribution.keys()):
-            if distance_threshold % 20 == 0:
-                print(f">= {distance_threshold} {unit}: {distribution[distance_threshold]} rides")
+        # Create range buckets (e.g., 0-20, 20-40, 40-60, etc.)
+        buckets = {}
+        bucket_size = 50  # Adjust bucket size as needed
+        max_distance = max(distances) if distances else 0
 
-        print("\n=== MILESTONE ACHIEVEMENTS ===")
+        for i in range(0, int(max_distance) + bucket_size, bucket_size):
+            lower = i
+            upper = i + bucket_size
+
+            # Count rides in this range
+            count = sum(1 for d in distances if lower <= d < upper)
+            if count > 0:
+                buckets[f"{lower}-{upper}"] = count
+
+        # Display as table with percentages
+        total = len(distances)
+        print(f"{'Range':<15} | {'Count':<6} | {'Percentage':<10}")
+        print(f"{'-' * 15}-|{'-' * 8}|{'-' * 10}")
+
+        for range_label, count in buckets.items():
+            percentage = (count / total) * 100
+            print(f"{range_label:<15} | {count:<6} | {percentage:.2f}%")
+
+        print("\n=== DISTANCE ACHIEVEMENTS ===")
         milestones = advanced_metrics['milestone_rides']
         if unit == 'miles':
             print(f"Century rides (100+ {unit}): {milestones['centuries']}")
             print(f"Double centuries (200+ {unit}): {milestones['double_centuries']}")
             print(f"Triple centuries (300+ {unit}): {milestones['triple_centuries']}")
             print(f"Quad centuries (400+ {unit}): {milestones['quad_centuries']}")
-        else:  # kilometers - display Audax distance ranges
-            print(f"200-300 {unit}: {milestones['range_200_to_300']}")
-            print(f"300-400 {unit}: {milestones['range_300_to_400']}")
-            print(f"400-600 {unit}: {milestones['range_400_to_600']}")
-            print(f"600-1200 {unit}: {milestones['range_600_to_1200']}")
-            print(f"1200+ {unit}: {milestones['range_1200_plus']}")
-
-        print("\n=== TOP 5 LONGEST RIDES === ")
-        distance_titles = get_ride_titles(trips, distances, unit)
-        for i, (distance, title) in enumerate(distance_titles, 1):
-            print(f"{i}. {distance:.1f} {unit} - {title}")
+        else:  # kilometers - display new distance ranges
+            print(f"50 - 99 {unit}: {milestones['range_50_to_99']}")
+            print(f"100 - 149 {unit}: {milestones['range_100_to_149']}")
+            print(f"150 - 199 {unit}: {milestones['range_150_to_199']}")
+            print(f"200 - 299 {unit}: {milestones['range_200_to_299']}")
+            print(f"300 - 399 {unit}: {milestones['range_300_to_399']}")
+            print(f"400 - 599 {unit}: {milestones['range_400_to_599']}")
+            print(f"600 - 999 {unit}: {milestones['range_600_to_999']}")
+            print(f"1000+ {unit}: {milestones['range_1000_plus']}")
 
         print("\n=== MONTHLY STATISTICS ===")
-        current_date = datetime.now()
+        # current_date = datetime.now()
         month_tuples = []
         for month in advanced_metrics['monthly_totals'].keys():
             year, month_num = map(int, month.split('-'))

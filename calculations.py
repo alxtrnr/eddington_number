@@ -170,30 +170,40 @@ def get_milestone_rides(distances: List[Decimal], unit: str = 'miles') -> Dict[s
             'quad_centuries': quad_centuries,
             'longest_rides': sorted(distances, reverse=True)[:5]
         }
-    else:  # kilometers - use Audax distance ranges
-        audax_200k = 200
-        audax_300k = 300
-        audax_400k = 400
-        audax_600k = 600
-        audax_1200k = 1200
+    else: # kilometers - use new distance ranges
+        # Define new thresholds
+        range_50 = 50
+        range_100 = 100
+        range_150 = 150
+        range_200 = 200
+        range_300 = 300
+        range_400 = 400
+        range_600 = 600
+        range_1000 = 1000
 
         # Count rides within specific ranges
-        range_200_to_300 = sum(1 for d in distances if audax_200k <= d < audax_300k)
-        range_300_to_400 = sum(1 for d in distances if audax_300k <= d < audax_400k)
-        range_400_to_600 = sum(1 for d in distances if audax_400k <= d < audax_600k)
-        range_600_to_1200 = sum(1 for d in distances if audax_600k <= d < audax_1200k)
-        range_1200_plus = sum(1 for d in distances if d >= audax_1200k)
+        range_50_to_99 = sum(1 for d in distances if range_50 <= d < range_100)
+        range_100_to_149 = sum(1 for d in distances if range_100 <= d < range_150)
+        range_150_to_199 = sum(1 for d in distances if range_150 <= d < range_200)
+        range_200_to_299 = sum(1 for d in distances if range_200 <= d < range_300)
+        range_300_to_399 = sum(1 for d in distances if range_300 <= d < range_400)
+        range_400_to_599 = sum(1 for d in distances if range_400 <= d < range_600)
+        range_600_to_999 = sum(1 for d in distances if range_600 <= d < range_1000)
+        range_1000_plus = sum(1 for d in distances if d >= range_1000)
 
         milestones = {
             'total_rides': len(distances),
             'longest': sorted_distances[-1],
             'shortest': sorted_distances[0],
             'median': sorted_distances[len(sorted_distances) // 2],
-            'range_200_to_300': range_200_to_300,
-            'range_300_to_400': range_300_to_400,
-            'range_400_to_600': range_400_to_600,
-            'range_600_to_1200': range_600_to_1200,
-            'range_1200_plus': range_1200_plus,
+            'range_50_to_99': range_50_to_99,
+            'range_100_to_149': range_100_to_149,
+            'range_150_to_199': range_150_to_199,
+            'range_200_to_299': range_200_to_299,
+            'range_300_to_399': range_300_to_399,
+            'range_400_to_599': range_400_to_599,
+            'range_600_to_999': range_600_to_999,
+            'range_1000_plus': range_1000_plus,
             'longest_rides': sorted(distances, reverse=True)[:5]
         }
 
